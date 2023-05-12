@@ -1,0 +1,58 @@
+# GitHub actions workflow which builds and publishes the docker images.
+
+name: Build docker images
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Inspect builder
+        run: docker buildx inspect
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push all platforms
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          labels: |
+            org.opencontainers.image.version=${{ github.event.inputs.version }}
+          tags: "mushroomlabs/pixelfed:${{ github.event.inputs.version }}"
+          file: "Dockerfile"
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ github.event.inputs.version }}
