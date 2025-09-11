@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y \
     moreutils \
     nano \
     procps \
-    software-properties-common \
     unzip \
     wget \
     zip \
