@@ -53,7 +53,8 @@ RUN install-php-extensions redis \
     curl \
     pdo_pgsql \
     pdo_mysql \
-    pdo_sqlite
+    pdo_sqlite \
+    ffi
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
